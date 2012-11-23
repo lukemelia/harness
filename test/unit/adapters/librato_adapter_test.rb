@@ -158,17 +158,6 @@ class LibratoAdapterTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_post_eoferror
-    ENV['HARNESS_LIBRATO_RETRY_TIMEOUT'] = '0'
-    eof_error_proc = proc { raise EOFError }
-
-    Net::HTTP.stub(:start, eof_error_proc )do
-      proc {
-        @adapter.send(:post, {})
-      }.must_raise EOFError
-    end
-  end
-
   private
   def email
     'example@example.com'

@@ -46,47 +46,26 @@ module Harness
 
       uri = URI.parse('https://metrics-api.librato.com/v1/metrics')
 
-      rescue_once(EOFError) do
-        Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-          request = Net::HTTP::Post.new uri.request_uri
+      Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+        request = Net::HTTP::Post.new uri.request_uri
 
-          request.basic_auth config.email, config.token
-          request['Content-Type'] = 'application/json'
-          request.body = params.to_json
+        request.basic_auth config.email, config.token
+        request['Content-Type'] = 'application/json'
+        request.body = params.to_json
 
-          response = http.request request
+        response = http.request request
 
-          unless response.code.to_i == 200
-            text = %Q{
-            Server Said: #{response.body}
-            Sent: #{params.inspect}
-            }
+        unless response.code.to_i == 200
+          text = %Q{
+          Server Said: #{response.body}
+          Sent: #{params.inspect}
+          }
 
-            raise Harness::LoggingError, text
-          end
+          raise Harness::LoggingError, text
         end
       end
 
       true
-    end
-
-    def rescue_once(error, timeout = 10, &block)
-      count = 0
-
-      timeout = (ENV['HARNESS_LIBRATO_RETRY_TIMEOUT'] || timeout).to_i
-
-      begin
-        yield
-      rescue error
-        count += 1
-
-        if count < 2
-          sleep timeout
-          retry
-        else
-          raise
-        end
-      end
     end
 
     def config
