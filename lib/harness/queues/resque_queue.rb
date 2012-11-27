@@ -6,16 +6,6 @@ module Harness
       def self.perform(attributes)
         gauge = Gauge.new attributes
         new.log gauge
-
-      rescue EOFError
-        attributes[:attempts] ||= 0
-        attributes[:attempts] += 1
-
-        if Resque.respond_to?(:enqueue_in) and attributes[:attempts] < 3
-          Resque.enqueue_in(10.seconds, Harness::ResqueQueue::SendGauge, attributes)
-        else
-          raise
-        end
       end
     end
 
